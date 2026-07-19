@@ -121,27 +121,6 @@ html.gl-active [data-gl] img {
   }
 }
 
-/* ---------- scroll progress hairline ---------- */
-
-.progress {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: #fff;
-  mix-blend-mode: difference;
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-  z-index: 30;
-}
-
-@supports (animation-timeline: scroll()) {
-  .progress {
-    animation: progress-grow linear both;
-    animation-timeline: scroll(root);
-  }
-  @keyframes progress-grow { to { transform: scaleX(1); } }
-}
-
 /* ---------- header ---------- */
 
 .hdr {
