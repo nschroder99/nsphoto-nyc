@@ -1,0 +1,377 @@
+/* ============================================================
+   NS Photography — Homepage styles
+   Minimal gallery aesthetic: warm neutral placeholders,
+   generous white space, small uppercase sans-serif labels.
+   ============================================================ */
+
+:root {
+  --ink: #1a1a1a;
+  --muted-1: #555;
+  --muted-2: #999;
+  --muted-3: #aaa;
+  --muted-4: #bbb;
+  --border: #ebebe8;
+  --surface: #ffffff;
+  --page-bg: #f7f7f5;
+
+  /* Warm neutral placeholder tones, used until real photos are added */
+  --ph-1: #dcdcda;
+  --ph-2: #d2d4d1;
+  --ph-3: #e4e2de;
+  --ph-4: #d8d6d0;
+  --ph-5: #dedfdc;
+
+  --ph-caption-1: #8a8a86;
+  --ph-caption-2: #83857f;
+  --ph-caption-3: #8f8c85;
+
+  --gap: 22px;
+  --side-pad: 36px;
+  --max-width: 1120px;
+
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.site {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+}
+
+/* ---------- Header / nav ---------- */
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px var(--side-pad);
+  position: relative;
+}
+
+.logo {
+  font-size: 12px;
+  color: var(--ink);
+  letter-spacing: 2.5px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 26px;
+  font-size: 11px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  color: var(--muted-2);
+  text-decoration: none;
+}
+
+.nav-links a.is-active {
+  color: var(--ink);
+}
+
+.nav-links a.is-cta {
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 2px;
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: inherit;
+}
+
+/* ---------- Intro ---------- */
+
+.intro {
+  padding: 52px var(--side-pad) 44px;
+  max-width: 380px;
+}
+
+.intro p {
+  margin: 0;
+}
+
+.intro-statement {
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.75;
+}
+
+.intro-meta {
+  font-size: 11px;
+  color: var(--muted-3);
+  margin-top: 18px !important;
+  letter-spacing: 1px;
+}
+
+/* ---------- Gallery ---------- */
+
+.gallery > * + * {
+  margin-top: 56px;
+}
+
+.gallery-item {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  background-color: var(--ph-color, var(--ph-1));
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.6s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.gallery-item:hover img {
+  transform: scale(1.03);
+}
+
+/* Full-bleed cinematic bands (hero + closer) */
+.gallery-hero {
+  aspect-ratio: 21 / 9;
+}
+
+/* Inset full-width statement image */
+.gallery-wide {
+  aspect-ratio: 16 / 9;
+  margin-inline: var(--side-pad);
+}
+
+/* Two landscapes side by side at native 3:2 */
+.gallery-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  padding: 0 var(--side-pad);
+}
+
+.gallery-pair .gallery-item {
+  aspect-ratio: 3 / 2;
+}
+
+/* Asymmetric editorial row: portrait beside a vertically centered landscape */
+.gallery-feature {
+  display: grid;
+  grid-template-columns: 1fr 1.55fr;
+  gap: var(--gap);
+  padding: 0 var(--side-pad);
+  align-items: center;
+}
+
+.gallery-feature .is-portrait {
+  aspect-ratio: 4 / 5;
+}
+
+.gallery-feature .gallery-item:not(.is-portrait) {
+  aspect-ratio: 3 / 2;
+}
+
+.view-all {
+  padding: 0 var(--side-pad);
+  text-align: center;
+}
+
+.view-all a {
+  font-size: 10px;
+  color: var(--ink);
+  letter-spacing: 2px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 3px;
+  text-transform: uppercase;
+}
+
+/* ---------- Services ---------- */
+
+.services {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+  padding: 56px var(--side-pad) 0;
+}
+
+.service p {
+  margin: 0;
+}
+
+.service-index {
+  font-size: 10px;
+  color: var(--muted-4);
+  letter-spacing: 1.5px;
+  margin-bottom: 10px !important;
+  text-transform: uppercase;
+}
+
+.service-desc {
+  font-size: 11.5px;
+  color: var(--muted-1);
+  line-height: 1.7;
+}
+
+/* ---------- Footer / booking ---------- */
+
+.site-footer {
+  margin-top: 56px;
+  border-top: 0.5px solid var(--border);
+  padding: 36px var(--side-pad);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-note p {
+  margin: 0;
+}
+
+.footer-headline {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.footer-sub {
+  font-size: 11px;
+  color: var(--muted-3);
+  margin-top: 6px !important;
+}
+
+.inquire {
+  border: 1px solid var(--ink);
+  padding: 10px 22px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+@media (max-width: 900px) {
+  .gallery > * + * {
+    margin-top: 40px;
+  }
+
+  .gallery-hero {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --side-pad: 22px;
+    --gap: 14px;
+  }
+
+  .site {
+    border-left: none;
+    border-right: none;
+  }
+
+  .nav-toggle {
+    display: block;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 20px var(--side-pad) 24px;
+    z-index: 10;
+  }
+
+  .site-header.is-open .nav-links {
+    display: flex;
+  }
+
+  .intro {
+    max-width: none;
+  }
+
+  .gallery > * + * {
+    margin-top: 28px;
+  }
+
+  .gallery-hero {
+    aspect-ratio: 3 / 2;
+  }
+
+  .gallery-wide {
+    aspect-ratio: 3 / 2;
+  }
+
+  .gallery-pair {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .gallery-feature {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .gallery-feature .is-portrait {
+    aspect-ratio: 4 / 5;
+  }
+
+  .services {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 44px;
+  }
+
+  .site-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .inquire {
+    align-self: stretch;
+    text-align: center;
+  }
+}

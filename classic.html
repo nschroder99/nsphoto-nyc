@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NS Photography — Architectural &amp; Interior Photography, NYC</title>
+  <meta name="description" content="Architectural and interior photography for New York's finest residential listings. Manhattan · Brooklyn." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="site">
+
+    <header class="site-header" id="site-header">
+      <a class="logo" href="#top">NS PHOTOGRAPHY</a>
+
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-links">MENU</button>
+
+      <nav>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#work" class="is-active">Work</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#info">Info</a></li>
+          <li><a href="#book" class="is-cta">Book a shoot</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <section class="intro" id="top">
+      <p class="intro-statement">Architectural and interior photography for New York's finest residential listings.</p>
+      <p class="intro-meta">MANHATTAN · BROOKLYN · EST. 2026</p>
+    </section>
+
+    <section class="gallery" id="work" aria-label="Selected work">
+      <!--
+        Gallery images live in images/gallery/ (web-optimized copies;
+        untouched originals are kept in images/originals/). Landscape
+        photos display at their native 3:2 — swap a src to change a slot.
+      -->
+
+      <figure class="gallery-item gallery-hero" style="--ph-color:#DCDCDA;">
+        <img src="images/gallery/lr.jpg" alt="Living room with park views" />
+      </figure>
+
+      <div class="gallery-pair">
+        <figure class="gallery-item" style="--ph-color:#D2D4D1;">
+          <img src="images/gallery/kit1.jpg" alt="Kitchen with city views" loading="lazy" />
+        </figure>
+        <figure class="gallery-item" style="--ph-color:#E4E2DE;">
+          <img src="images/gallery/dr-kit.jpg" alt="Dining area and kitchen" loading="lazy" />
+        </figure>
+      </div>
+
+      <div class="gallery-feature">
+        <figure class="gallery-item is-portrait" style="--ph-color:#D8D6D0;">
+          <img src="images/gallery/front.jpg" alt="Townhouse exterior" loading="lazy" />
+        </figure>
+        <figure class="gallery-item" style="--ph-color:#DEDFDC;">
+          <img src="images/gallery/lr-downstairs-1.jpg" alt="Downstairs living room" loading="lazy" />
+        </figure>
+      </div>
+
+      <div class="gallery-pair">
+        <figure class="gallery-item" style="--ph-color:#DCDCDA;">
+          <img src="images/gallery/br1.jpg" alt="Bedroom" loading="lazy" />
+        </figure>
+        <figure class="gallery-item" style="--ph-color:#D2D4D1;">
+          <img src="images/gallery/bth1-b.jpg" alt="Bathroom with garden window" loading="lazy" />
+        </figure>
+      </div>
+
+      <figure class="gallery-item gallery-wide" style="--ph-color:#E4E2DE;">
+        <img src="images/gallery/lr1-2.jpg" alt="Living room" loading="lazy" />
+      </figure>
+
+      <div class="gallery-pair">
+        <figure class="gallery-item" style="--ph-color:#D8D6D0;">
+          <img src="images/gallery/kit2.jpg" alt="Kitchen, alternate angle" loading="lazy" />
+        </figure>
+        <figure class="gallery-item" style="--ph-color:#DEDFDC;">
+          <img src="images/gallery/lr-3.jpg" alt="Living room with fireplace" loading="lazy" />
+        </figure>
+      </div>
+
+      <figure class="gallery-item gallery-hero" style="--ph-color:#DCDCDA;">
+        <img src="images/gallery/view-sunset.jpg" alt="Sunset view over the city" loading="lazy" />
+      </figure>
+
+      <div class="view-all">
+        <a href="#work">View all work</a>
+      </div>
+    </section>
+
+    <section class="services" id="services" aria-label="Services">
+      <div class="service">
+        <p class="service-index">01 — Stills</p>
+        <p class="service-desc">Magazine-quality interiors, exteriors, and detail work.</p>
+      </div>
+      <div class="service">
+        <p class="service-index">02 — Film</p>
+        <p class="service-desc">Cinematic walkthroughs and social-ready vertical video.</p>
+      </div>
+      <div class="service">
+        <p class="service-index">03 — Twilight</p>
+        <p class="service-desc">Golden-hour and dusk photography for signature listings.</p>
+      </div>
+    </section>
+
+    <footer class="site-footer" id="book">
+      <div class="footer-note">
+        <p class="footer-headline">Booking for late summer.</p>
+        <p class="footer-sub">Typical turnaround: next-day delivery.</p>
+      </div>
+      <a class="inquire" href="mailto:hello@nsphotography.com">Inquire</a>
+    </footer>
+
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

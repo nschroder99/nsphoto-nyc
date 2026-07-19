@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NS Photography — Architectural &amp; Interior Photography, NYC</title>
+  <meta name="description" content="Architectural and interior photography for New York's finest residential listings. Manhattan · Brooklyn." />
+  <meta name="theme-color" content="#f7f6f3" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/experience.css?v=3" />
+</head>
+<body>
+
+  <!-- scroll progress hairline (CSS scroll-driven) -->
+  <div class="progress" aria-hidden="true"></div>
+
+  <!-- preloader -->
+  <div class="preloader" aria-hidden="true">
+    <p class="preloader__logo">NS&nbsp;&nbsp;PHOTOGRAPHY</p>
+    <p class="preloader__count"><span id="load-count">000</span></p>
+  </div>
+
+  <!-- WebGL layer: all photography renders here when available -->
+  <canvas id="gl" aria-hidden="true"></canvas>
+
+  <header class="hdr">
+    <a class="hdr__logo" href="#top">NS PHOTOGRAPHY</a>
+    <nav class="hdr__nav" aria-label="Main">
+      <a href="#work">Work</a>
+      <a href="#services">Services</a>
+      <a href="#inquire" class="hdr__cta">Inquire</a>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <figure class="hero__media" data-gl data-hero>
+        <img src="images/gallery/lr.jpg" alt="Sunlit living room with park views through three tall windows" fetchpriority="high" />
+      </figure>
+      <div class="hero__scrim" aria-hidden="true"></div>
+
+      <div class="hero__content">
+        <h1 class="hero__title">
+          <span class="line"><span>New York,</span></span>
+          <span class="line"><span><em>in its best light.</em></span></span>
+        </h1>
+        <div class="hero__foot">
+          <p class="hero__coords">101 Central Park West</p>
+          <div class="hero__scrollcue" aria-hidden="true"><span>Scroll</span><i></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MANIFESTO (scroll-fill type) ============ -->
+    <section class="manifesto">
+      <p class="fill-text">Architectural &amp; interior photography for the city's finest residential listings.</p>
+    </section>
+
+    <!-- ============ SELECTED WORK ============ -->
+    <section class="work" id="work">
+      <div class="row row--feature">
+        <figure class="frame frame--portrait" data-gl>
+          <img src="images/gallery/front.jpg" alt="Brick townhouse facade with planted stoop" loading="lazy" />
+        </figure>
+        <div class="row__text reveal">
+          <p class="row__label">Exteriors</p>
+          <p class="row__quote"><em>Where the tour begins.</em></p>
+          <p class="row__body">Facades, stoops and streetscapes, photographed at the quietest hour of the morning.</p>
+        </div>
+        <span class="big-num" aria-hidden="true">01</span>
+      </div>
+
+      <div class="row row--bleed">
+        <p class="row__label row__label--bleed reveal">Interiors</p>
+        <figure class="frame frame--cinema" data-gl>
+          <img src="images/gallery/dr-kit.jpg" alt="Open dining area and kitchen in warm light" loading="lazy" />
+        </figure>
+      </div>
+
+      <div class="row row--pair">
+        <figure class="frame frame--land" data-gl>
+          <img src="images/gallery/kit1.jpg" alt="Dark kitchen with marble island and city views" loading="lazy" />
+        </figure>
+        <figure class="frame frame--land" data-gl>
+          <img src="images/gallery/br1.jpg" alt="Bedroom with tall windows and brass chandelier" loading="lazy" />
+        </figure>
+      </div>
+
+      <div class="row row--wide">
+        <figure class="frame frame--cinema" data-gl>
+          <img src="images/gallery/lr-downstairs-1.jpg" alt="Double-height loft living room with fireplace" loading="lazy" />
+        </figure>
+        <span class="big-num big-num--right" aria-hidden="true">02</span>
+      </div>
+    </section>
+
+    <!-- ============ HORIZONTAL WALKTHROUGH ============ -->
+    <section class="hscroll" id="walkthrough">
+      <div class="hscroll__pin">
+        <div class="hscroll__track">
+          <figure class="panel" data-gl>
+            <img src="images/gallery/lr1-2.jpg" alt="Corner living room over the Hudson at dusk" loading="lazy" />
+          </figure>
+          <figure class="panel" data-gl>
+            <img src="images/gallery/kit2.jpg" alt="Pale blue prewar kitchen with breakfast bar" loading="lazy" />
+          </figure>
+          <figure class="panel" data-gl>
+            <img src="images/gallery/bth1-b.jpg" alt="Antique bathtub beneath a tall garden window" loading="lazy" />
+          </figure>
+          <figure class="panel" data-gl>
+            <img src="images/gallery/lr-3.jpg" alt="Living room with dark shelving and herringbone floor" loading="lazy" />
+          </figure>
+          <div class="panel panel--end">
+            <p><em>Full shoots,</em><br />delivered next day.</p>
+            <a href="mailto:hello@nsphoto.nyc" data-cursor-hover>Book a shoot</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TWILIGHT ============ -->
+    <section class="twilight" id="twilight">
+      <div class="twilight-scrub">
+        <div class="twilight-scrub__pin">
+          <p class="chapter reveal">Twilight</p>
+          <h2 class="twilight__title reveal"><em>The hour</em> that sells.</h2>
+          <figure class="frame frame--dusk" data-gl data-scrub>
+            <img src="images/gallery/view-day.jpg" alt="Daytime view over the Hudson River from a high floor" loading="lazy" />
+            <img class="night-img" src="images/gallery/view-night.jpg" alt="The same Hudson River view at sunset" loading="lazy" />
+          </figure>
+          <p class="twilight__copy reveal">Golden-hour and dusk coverage for signature listings — the frame buyers remember.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SERVICES ============ -->
+    <section class="services" id="services">
+      <header class="work__head reveal">
+        <h2>Services</h2>
+      </header>
+
+      <ul class="svc-list">
+        <li class="svc" data-key="stills">
+          <span class="svc__idx">01</span>
+          <span class="svc__name">Stills</span>
+          <span class="svc__desc">Magazine-quality interiors, exteriors and detail work.</span>
+        </li>
+        <li class="svc" data-key="twilight">
+          <span class="svc__idx">02</span>
+          <span class="svc__name">Twilight</span>
+          <span class="svc__desc">Golden-hour and dusk photography for signature listings.</span>
+        </li>
+        <li class="svc" data-key="staging">
+          <span class="svc__idx">03</span>
+          <span class="svc__name">Virtual Staging</span>
+          <span class="svc__desc">Photoreal furnishing and decluttering.</span>
+        </li>
+      </ul>
+
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="foot" id="inquire">
+      <a class="marquee" href="mailto:hello@nsphoto.nyc" data-cursor-hover aria-label="Inquire — hello@nsphoto.nyc">
+        <div class="marquee__inner" aria-hidden="true">
+          <span class="marquee__half">
+            <em>Inquire</em><i>·</i><span>hello@nsphoto.nyc</span><i>·</i><em>Inquire</em><i>·</i><span>hello@nsphoto.nyc</span><i>·</i><em>Inquire</em><i>·</i><span>hello@nsphoto.nyc</span><i>·</i>
+          </span>
+          <span class="marquee__half">
+            <em>Inquire</em><i>·</i><span>hello@nsphoto.nyc</span><i>·</i><em>Inquire</em><i>·</i><span>hello@nsphoto.nyc</span><i>·</i><em>Inquire</em><i>·</i><span>hello@nsphoto.nyc</span><i>·</i>
+          </span>
+        </div>
+      </a>
+
+      <div class="foot__bar">
+        <span>© 2026 NS Photography — New York</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- custom cursor -->
+  <div class="cursor" aria-hidden="true">
+    <div class="cursor__dot"></div>
+    <div class="cursor__ring"></div>
+  </div>
+
+  <script src="js/experience.js?v=3"></script>
+</body>
+</html>

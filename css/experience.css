@@ -1,0 +1,936 @@
+/* ============================================================
+   NS Photography — Immersive experience (July 2026)
+   WebGL-backed photography + scroll-driven CSS.
+   Layering: body bg < #gl canvas (z1) < .page (z2) < noise (25)
+             < header/progress (30) < preloader (50) < cursor (60)
+   ============================================================ */
+
+:root {
+  --bg: oklch(97.9% 0.004 95);
+  --ink: oklch(21% 0.005 270);
+  --bg-dark: oklch(15% 0.014 285);
+  --ink-dark: oklch(92.5% 0.014 85);
+  --accent: oklch(76% 0.09 60);
+
+  --serif: "Instrument Serif", "Times New Roman", serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+
+  --pad: clamp(20px, 4vw, 56px);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io: cubic-bezier(0.83, 0, 0.17, 1);
+
+  --hair: color-mix(in oklch, currentColor 16%, transparent);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  /* no visible scrollbar — the top progress hairline marks position */
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.9s var(--ease), color 0.9s var(--ease);
+  overflow-x: clip;
+}
+
+body.is-dark {
+  background: var(--bg-dark);
+  color: var(--ink-dark);
+}
+
+::selection {
+  background: color-mix(in oklch, var(--accent) 45%, transparent);
+}
+
+img { max-width: 100%; display: block; }
+
+a { color: inherit; }
+
+/* filmic noise over everything except chrome */
+body::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 25;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.032;
+}
+
+/* ---------- WebGL canvas ---------- */
+
+#gl {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.page {
+  position: relative;
+  z-index: 2;
+}
+
+/* Photography frames: DOM <img> is the layout + fallback;
+   once WebGL is live the img fades out and the canvas takes over. */
+[data-gl] {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+}
+
+[data-gl] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+html:not(.gl-active) [data-gl] {
+  background: color-mix(in oklch, var(--ink) 8%, var(--bg));
+}
+
+html.gl-active [data-gl] img {
+  opacity: 0;
+}
+
+/* When GL is off (touch devices, or no WebGL) the DOM images render
+   directly — fully static, with a scroll-linked fade-in only.
+   The twilight night-img keeps its own crossfade rule (more specific). */
+@supports (animation-timeline: view()) {
+  html:not(.gl-active) [data-gl] img {
+    animation: img-fade linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 70%;
+  }
+  @keyframes img-fade {
+    from { opacity: 0; }
+  }
+}
+
+/* ---------- scroll progress hairline ---------- */
+
+.progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: #fff;
+  mix-blend-mode: difference;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  z-index: 30;
+}
+
+@supports (animation-timeline: scroll()) {
+  .progress {
+    animation: progress-grow linear both;
+    animation-timeline: scroll(root);
+  }
+  @keyframes progress-grow { to { transform: scaleX(1); } }
+}
+
+/* ---------- header ---------- */
+
+.hdr {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 26px var(--pad);
+  color: #fff;
+  mix-blend-mode: difference;
+  opacity: 0;
+  translate: 0 -8px;
+  transition: opacity 1s var(--ease) 0.7s, translate 1s var(--ease) 0.7s;
+}
+
+html.is-loaded .hdr {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.hdr__logo {
+  font-size: 12px;
+  letter-spacing: 3px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.hdr__nav {
+  display: flex;
+  gap: clamp(18px, 3vw, 34px);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.hdr__nav a {
+  text-decoration: none;
+  opacity: 0.72;
+  transition: opacity 0.3s;
+}
+
+.hdr__nav a:hover { opacity: 1; }
+
+.hdr__nav a.hdr__cta {
+  opacity: 1;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+}
+
+@supports (animation-timeline: scroll()) {
+  .hdr {
+    animation: hdr-shrink linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 240px;
+  }
+  @keyframes hdr-shrink {
+    to { padding-block: 14px; }
+  }
+}
+
+/* ---------- preloader ---------- */
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--bg);
+  display: grid;
+  place-items: center;
+}
+
+.preloader__logo {
+  font-size: 12px;
+  letter-spacing: 6px;
+  margin: 0;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse { 50% { opacity: 0.35; } }
+
+.preloader__count {
+  position: absolute;
+  right: var(--pad);
+  bottom: 2vh;
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(5rem, 14vw, 12rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklch, var(--ink) 22%, transparent);
+}
+
+html.is-loaded .preloader {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 1s var(--ease-io) 0.15s;
+  pointer-events: none;
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  position: relative;
+  height: 100svh;
+  min-height: 560px;
+}
+
+.hero__media {
+  position: absolute;
+  inset: 0;
+}
+
+/* very slight flat grey wash — just enough for the type, keeps the whites.
+   The photo appears alone first; the wash fades in with the text. */
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  background: oklch(20% 0 0 / 0.16);
+  opacity: 0;
+  transition: opacity 1.4s var(--ease) 1s;
+  pointer-events: none;
+}
+
+html.is-loaded .hero__scrim {
+  opacity: 1;
+}
+
+.hero__content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: var(--pad);
+  color: #fff;
+}
+
+.hero__title {
+  /* sits above the windows in the hero photo, clear of the header */
+  margin: clamp(80px, 13svh, 150px) 0 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(3.4rem, 11vw, 10.5rem);
+  line-height: 0.96;
+  letter-spacing: -0.015em;
+}
+
+.hero__title .line {
+  display: block;
+  overflow: hidden;
+  /* keep serif descenders (g, y) unclipped despite the tight line-height */
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
+
+.hero__title .line > span {
+  display: block;
+  translate: 0 112%;
+  transition: translate 1.25s var(--ease);
+}
+
+html.is-loaded .hero__title .line:nth-child(1) > span { translate: 0 0; transition-delay: 1.05s; }
+html.is-loaded .hero__title .line:nth-child(2) > span { translate: 0 0; transition-delay: 1.18s; }
+
+.hero__foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  border-top: 1px solid oklch(100% 0 0 / 0.28);
+  padding-top: 20px;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease) 1.55s;
+}
+
+html.is-loaded .hero__foot { opacity: 1; }
+
+.hero__coords {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.85;
+  text-align: left;
+}
+
+.hero__scrollcue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.hero__scrollcue i {
+  width: 1px;
+  height: 44px;
+  background: oklch(100% 0 0 / 0.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero__scrollcue i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  animation: cue-drop 2.1s var(--ease-io) infinite;
+}
+
+@keyframes cue-drop {
+  0% { transform: translateY(-100%); }
+  55%, 100% { transform: translateY(100%); }
+}
+
+/* ---------- manifesto: scroll-fill type ---------- */
+
+.manifesto {
+  padding: clamp(140px, 26vh, 300px) var(--pad);
+  display: flex;
+  justify-content: center;
+}
+
+.fill-text {
+  margin: 0;
+  max-width: 20ch;
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 6.6vw, 6rem);
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+@supports (animation-timeline: view()) {
+  .fill-text {
+    color: transparent;
+    background-image:
+      linear-gradient(var(--ink), var(--ink)),
+      linear-gradient(
+        color-mix(in oklch, var(--ink) 16%, transparent),
+        color-mix(in oklch, var(--ink) 16%, transparent)
+      );
+    background-repeat: no-repeat;
+    background-size: 100% 0%, 100% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: text-fill linear both;
+    animation-timeline: view();
+    animation-range: cover 8% cover 52%;
+  }
+  @keyframes text-fill {
+    to { background-size: 100% 100%, 100% 100%; }
+  }
+}
+
+/* ---------- generic scroll reveals ---------- */
+
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: rise 1s var(--ease) both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 26%;
+  }
+  @keyframes rise {
+    from { opacity: 0; translate: 0 3rem; }
+  }
+
+  /* touch devices: no positional motion — text fades in place */
+  @media (pointer: coarse) {
+    .reveal { animation-name: fade-only; }
+  }
+  @keyframes fade-only {
+    from { opacity: 0; }
+  }
+}
+
+/* ---------- work section ---------- */
+
+.work {
+  padding: 0 var(--pad);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(60px, 10vh, 140px);
+}
+
+.work__head {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(16px, 3vw, 40px);
+  border-top: 1px solid var(--hair);
+  padding-top: 22px;
+}
+
+.work__head h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.4rem, 6vw, 5rem);
+  letter-spacing: -0.01em;
+}
+
+.row { position: relative; }
+
+.row--feature {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3vw;
+  align-items: center;
+}
+
+.frame--portrait {
+  grid-column: 2 / 7;
+  aspect-ratio: 4 / 5;
+}
+
+.row__text {
+  grid-column: 8 / 12;
+}
+
+.row__label {
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin: 0 0 18px;
+}
+
+/* label sitting above a full-bleed image: re-align to the content edge */
+.row__label--bleed {
+  padding-inline: var(--pad);
+  margin-bottom: 26px;
+}
+
+.row__quote {
+  margin: 0 0 18px;
+  font-family: var(--serif);
+  font-size: clamp(1.7rem, 2.6vw, 2.6rem);
+  line-height: 1.2;
+}
+
+.row__body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.75;
+  opacity: 0.6;
+  max-width: 34ch;
+}
+
+.row--bleed {
+  margin-inline: calc(-1 * var(--pad));
+}
+
+.frame--cinema {
+  aspect-ratio: 21 / 10;
+}
+
+.row--pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3vw;
+  align-items: start;
+}
+
+.frame--land {
+  aspect-ratio: 3 / 2;
+}
+
+.row--wide .frame--cinema {
+  aspect-ratio: 16 / 9;
+  width: min(100%, 1500px);
+  margin-inline: auto;
+}
+
+.big-num {
+  position: absolute;
+  top: -0.35em;
+  left: -0.05em;
+  z-index: 3;
+  font-family: var(--serif);
+  font-size: clamp(6rem, 15vw, 14rem);
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklch, currentColor 40%, transparent);
+  pointer-events: none;
+}
+
+.big-num--right {
+  left: auto;
+  right: 0;
+  top: auto;
+  bottom: -0.4em;
+}
+
+/* ---------- horizontal walkthrough ---------- */
+
+/* flows straight on from the work rows above — no header, modest gap */
+.hscroll {
+  margin-top: clamp(60px, 10vh, 140px);
+}
+
+/* fallback: manual horizontal strip with snap */
+.hscroll__track {
+  display: flex;
+  gap: 3vw;
+  padding-inline: var(--pad);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.hscroll__track::-webkit-scrollbar { display: none; }
+
+.panel {
+  flex: 0 0 auto;
+  width: clamp(300px, 62vw, 1050px);
+  aspect-ratio: 3 / 2;
+  scroll-snap-align: center;
+}
+
+.panel--end {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 22px;
+  width: clamp(260px, 34vw, 520px);
+  aspect-ratio: auto;
+}
+
+.panel--end p {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3.2vw, 3rem);
+  line-height: 1.15;
+}
+
+.panel--end a {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 3px;
+}
+
+/* upgrade: scroll-driven pinned horizontal travel */
+@supports (animation-timeline: view()) {
+  .hscroll {
+    height: 380svh;
+    view-timeline: --hs block;
+  }
+
+  .hscroll__pin {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: clip;
+  }
+
+  .hscroll__track {
+    overflow-x: visible;
+    scroll-snap-type: none;
+    width: max-content;
+    animation: h-slide linear both;
+    animation-timeline: --hs;
+    animation-range: contain 0% contain 100%;
+    will-change: transform;
+  }
+
+  @keyframes h-slide {
+    to { transform: translateX(calc(-100% + 100vw)); }
+  }
+}
+
+/* ---------- twilight ---------- */
+
+.twilight {
+  margin-top: clamp(50px, 8vh, 110px);
+  text-align: center;
+}
+
+.chapter {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin: 0 0 3vh;
+}
+
+.twilight__title {
+  margin: 0 var(--pad) clamp(24px, 4svh, 48px);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 7.5vw, 6.5rem);
+  line-height: 1;
+  letter-spacing: -0.015em;
+}
+
+.twilight__title em {
+  color: var(--accent);
+}
+
+/* Day-to-night scroll scrub: a full-viewport pin holds the chapter
+   heading above a middle-band image while the view crossfades from
+   daytime to sunset (GL uMix, or the CSS fallback below). */
+.twilight-scrub {
+  height: 260svh;
+}
+
+.twilight-scrub__pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.frame--dusk {
+  height: 50svh;
+  width: 100%;
+}
+
+.frame--dusk img {
+  position: absolute;
+  inset: 0;
+}
+
+.frame--dusk .night-img {
+  z-index: 1;
+}
+
+/* DOM fallback (no WebGL): crossfade driven by the scrub's view timeline */
+@supports (animation-timeline: view()) {
+  html:not(.gl-active) .twilight-scrub {
+    view-timeline: --scrub block;
+  }
+  html:not(.gl-active) .frame--dusk .night-img {
+    animation: night-fade linear both;
+    animation-timeline: --scrub;
+    animation-range: contain 0% contain 100%;
+  }
+  @keyframes night-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+/* sits inside the pin, directly beneath the photo during the transition */
+.twilight__copy {
+  margin: clamp(20px, 3.5svh, 44px) auto 0;
+  max-width: 48ch;
+  font-size: 13px;
+  line-height: 1.8;
+  opacity: 0.65;
+  padding-inline: var(--pad);
+  text-wrap: balance;
+}
+
+/* ---------- services ---------- */
+
+.services {
+  margin-top: clamp(70px, 12vh, 160px);
+  padding-inline: var(--pad);
+}
+
+.svc-list {
+  list-style: none;
+  margin: clamp(30px, 6vh, 70px) 0 0;
+  padding: 0;
+}
+
+.svc {
+  display: grid;
+  grid-template-columns: 70px 1fr 1.1fr;
+  align-items: baseline;
+  gap: 3vw;
+  padding: clamp(26px, 4.5vh, 46px) 0;
+  border-top: 1px solid var(--hair);
+  transition: padding-left 0.5s var(--ease);
+}
+
+.svc:last-child {
+  border-bottom: 1px solid var(--hair);
+}
+
+.svc:hover {
+  padding-left: clamp(10px, 2vw, 28px);
+}
+
+.svc__idx {
+  font-size: 11px;
+  letter-spacing: 2px;
+  opacity: 0.45;
+}
+
+.svc__name {
+  font-family: var(--serif);
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  line-height: 1;
+}
+
+.svc__desc {
+  font-size: 13px;
+  line-height: 1.7;
+  opacity: 0.6;
+  max-width: 44ch;
+}
+
+/* ---------- footer ---------- */
+
+.foot {
+  margin-top: clamp(80px, 14vh, 180px);
+}
+
+/* clickable marquee: Inquire · Next-day delivery, widely spaced, looping */
+.marquee {
+  display: block;
+  border-block: 1px solid var(--hair);
+  overflow: hidden;
+  padding: clamp(20px, 3.5vh, 34px) 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.marquee__inner {
+  display: flex;
+  width: max-content;
+  animation: marquee 60s linear infinite;
+}
+
+.marquee:hover .marquee__inner {
+  animation-play-state: paused;
+}
+
+.marquee__half {
+  display: inline-flex;
+  align-items: baseline;
+  gap: clamp(28px, 4vw, 64px);
+  padding-right: clamp(28px, 4vw, 64px);
+  font-family: var(--serif);
+  font-size: clamp(1.7rem, 3.6vw, 3rem);
+  white-space: nowrap;
+}
+
+.marquee__half em {
+  font-style: italic;
+}
+
+.marquee__half i {
+  font-style: normal;
+  opacity: 0.35;
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+.foot__bar {
+  display: flex;
+  justify-content: center;
+  padding: clamp(36px, 6vh, 64px) var(--pad) clamp(30px, 5vh, 48px);
+  font-size: 10.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.foot__bar span { opacity: 0.45; }
+
+/* ---------- custom cursor ---------- */
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  display: none;
+}
+
+@media (pointer: fine) {
+  .cursor { display: block; }
+}
+
+.cursor__dot {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.cursor__ring {
+  position: fixed;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border-radius: 50%;
+  border: 1px solid oklch(100% 0 0 / 0.65);
+  transition: scale 0.4s var(--ease), opacity 0.4s;
+}
+
+.cursor.is-hover .cursor__ring {
+  scale: 1.8;
+  opacity: 0.9;
+}
+
+.cursor.is-hover .cursor__dot {
+  scale: 0.5;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 760px) {
+  .hdr { padding-block: 20px; }
+  .hdr__logo { font-size: 10px; letter-spacing: 2px; white-space: nowrap; }
+  .hdr__nav { gap: 14px; font-size: 10px; letter-spacing: 1px; }
+
+  .hero__foot { align-items: flex-start; }
+
+  .row--feature { grid-template-columns: 1fr; gap: 34px; }
+  .frame--portrait { grid-column: 1 / -1; }
+  .row__text { grid-column: 1 / -1; }
+
+  .row--pair { grid-template-columns: 1fr; gap: 34px; }
+
+  .frame--cinema { aspect-ratio: 4 / 3; }
+  .twilight-scrub { height: 220svh; }
+
+  /* slider panels fill half the screen height at the photo's native
+     3:2 — wider than the viewport, so the full frame slides past */
+  .panel {
+    height: 50svh;
+    width: auto;
+    aspect-ratio: 3 / 2;
+  }
+
+  .panel--end { height: auto; }
+
+  .svc {
+    grid-template-columns: 40px 1fr;
+    row-gap: 10px;
+  }
+  .svc__desc { grid-column: 2; }
+
+  .big-num { font-size: 5.6rem; }
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .marquee__inner { animation: none; }
+  .hero__scrollcue i::after { animation: none; }
+  .preloader__logo { animation: none; }
+
+  .reveal, .fill-text {
+    animation: none;
+  }
+
+  @supports (animation-timeline: view()) {
+    .fill-text {
+      color: var(--ink);
+      background: none;
+    }
+    .hscroll { height: auto; view-timeline: none; }
+    .hscroll__pin { position: static; height: auto; overflow: visible; }
+    .hscroll__track {
+      overflow-x: auto;
+      width: auto;
+      animation: none;
+    }
+  }
+
+  .hero__title .line > span,
+  .hdr,
+  .hero__foot {
+    transition-duration: 0.01s;
+  }
+}
