@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="css/experience.css?v=3" />
+  <link rel="stylesheet" href="css/experience.css?v=8" />
 </head>
 <body>
 
@@ -117,43 +117,44 @@
       </div>
     </section>
 
-    <!-- ============ HORIZONTAL WALKTHROUGH ============ -->
+    <!-- ============ HORIZONTAL WALKTHROUGH (native swipe strip) ============ -->
     <section class="hscroll" id="walkthrough">
-      <div class="hscroll__pin">
-        <div class="hscroll__track">
-          <figure class="panel" data-gl>
-            <img src="images/gallery/lr1-2.jpg" alt="Corner living room over the Hudson at dusk" loading="lazy" />
-          </figure>
-          <figure class="panel" data-gl>
-            <img src="images/gallery/kit2.jpg" alt="Pale blue prewar kitchen with breakfast bar" loading="lazy" />
-          </figure>
-          <figure class="panel" data-gl>
-            <img src="images/gallery/bth1-b.jpg" alt="Antique bathtub beneath a tall garden window" loading="lazy" />
-          </figure>
-          <figure class="panel" data-gl>
-            <img src="images/gallery/lr-3.jpg" alt="Living room with dark shelving and herringbone floor" loading="lazy" />
-          </figure>
-          <div class="panel panel--end">
-            <p><em>Full shoots,</em><br />delivered next day.</p>
-            <a href="mailto:hello@nsphoto.nyc" data-cursor-hover>Book a shoot</a>
-          </div>
+      <div class="hscroll__track">
+        <figure class="panel" data-gl>
+          <img src="images/gallery/lr1-2.jpg" alt="Corner living room over the Hudson at dusk" loading="lazy" />
+        </figure>
+        <figure class="panel" data-gl>
+          <img src="images/gallery/kit2.jpg" alt="Pale blue prewar kitchen with breakfast bar" loading="lazy" />
+        </figure>
+        <figure class="panel" data-gl>
+          <img src="images/gallery/bth1-b.jpg" alt="Antique bathtub beneath a tall garden window" loading="lazy" />
+        </figure>
+        <figure class="panel" data-gl>
+          <img src="images/gallery/lr-3.jpg" alt="Living room with dark shelving and herringbone floor" loading="lazy" />
+        </figure>
+        <div class="panel panel--end">
+          <p><em>Full shoots,</em><br />delivered next day.</p>
+          <a href="mailto:hello@nsphoto.nyc" data-cursor-hover>Book a shoot</a>
         </div>
+      </div>
+      <div class="hscroll__cue-wrap">
+        <button type="button" class="hscroll__cue" aria-label="See more photos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </button>
       </div>
     </section>
 
-    <!-- ============ TWILIGHT ============ -->
+    <!-- ============ TWILIGHT (crossfade plays on entry) ============ -->
     <section class="twilight" id="twilight">
-      <div class="twilight-scrub">
-        <div class="twilight-scrub__pin">
-          <p class="chapter reveal">Twilight</p>
-          <h2 class="twilight__title reveal"><em>The hour</em> that sells.</h2>
-          <figure class="frame frame--dusk" data-gl data-scrub>
-            <img src="images/gallery/view-day.jpg" alt="Daytime view over the Hudson River from a high floor" loading="lazy" />
-            <img class="night-img" src="images/gallery/view-night.jpg" alt="The same Hudson River view at sunset" loading="lazy" />
-          </figure>
-          <p class="twilight__copy reveal">Golden-hour and dusk coverage for signature listings — the frame buyers remember.</p>
-        </div>
-      </div>
+      <p class="chapter reveal">Twilight</p>
+      <h2 class="twilight__title reveal"><em>The hour</em> that sells.</h2>
+      <figure class="frame frame--dusk" data-gl data-scrub>
+        <img src="images/gallery/view-day.jpg" alt="Daytime view over the Hudson River from a high floor" loading="lazy" />
+        <img class="night-img" src="images/gallery/view-night.jpg" alt="The same Hudson River view at sunset" loading="lazy" />
+      </figure>
+      <p class="twilight__copy reveal">Golden-hour and dusk coverage for signature listings — the frame buyers remember.</p>
     </section>
 
     <!-- ============ SERVICES ============ -->
@@ -208,6 +209,6 @@
     <div class="cursor__ring"></div>
   </div>
 
-  <script src="js/experience.js?v=3"></script>
+  <script src="js/experience.js?v=8"></script>
 </body>
 </html>

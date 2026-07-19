@@ -314,14 +314,83 @@
     measure();
   });
 
-  /* ---------- main loop ---------- */
+  /* ---------- slider: desktop drag-to-scroll ---------- */
+
+  const hsTrack = document.querySelector(".hscroll__track");
+  if (hsTrack && finePointer) {
+    let dragging = false, dragStartX = 0, dragStartScroll = 0, dragMoved = 0;
+    hsTrack.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      dragging = true;
+      dragMoved = 0;
+      dragStartX = e.clientX;
+      dragStartScroll = hsTrack.scrollLeft;
+      hsTrack.setPointerCapture(e.pointerId);
+    });
+    hsTrack.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - dragStartX;
+      dragMoved = Math.max(dragMoved, Math.abs(dx));
+      hsTrack.scrollLeft = dragStartScroll - dx;
+    });
+    const endDrag = () => (dragging = false);
+    hsTrack.addEventListener("pointerup", endDrag);
+    hsTrack.addEventListener("pointercancel", endDrag);
+    // a real drag should not also fire a click (e.g. on "Book a shoot")
+    hsTrack.addEventListener("click", (e) => {
+      if (dragMoved > 6) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragMoved = 0;
+      }
+    }, true);
+  }
+
+  /* ---------- slider cue: fades once the strip moves; clicking advances it ---------- */
 
   const hsSection = document.querySelector(".hscroll");
-  const hsTrack = document.querySelector(".hscroll__track");
-  const hsDriven = !!(hsSection && hsTrack && !reduceMotion &&
-    typeof CSS !== "undefined" && CSS.supports("animation-timeline: view()"));
-  let hsX = 0;
-  if (hsDriven) hsTrack.style.animation = "none";
+  const hsCue = document.querySelector(".hscroll__cue");
+  if (hsTrack && hsSection) {
+    hsTrack.addEventListener("scroll", () => {
+      if (hsTrack.scrollLeft > 24) hsSection.classList.add("is-scrolled");
+    }, { passive: true });
+
+    if (hsCue) {
+      hsCue.addEventListener("click", () => {
+        const panel = hsTrack.querySelector(".panel");
+        const gap = parseFloat(getComputedStyle(hsTrack).columnGap) || 0;
+        const step = panel ? panel.offsetWidth + gap : hsTrack.clientWidth * 0.8;
+        hsTrack.scrollBy({ left: step, behavior: "smooth" });
+      });
+    }
+  }
+
+  /* ---------- twilight: crossfade plays once on entry ---------- */
+
+  let nightStart = 0;
+  const duskFigure = document.querySelector(".frame--dusk");
+  if (duskFigure && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => {
+      const en = entries[entries.length - 1];
+      const on = duskFigure.classList.contains("night-on");
+      if (!on && en.intersectionRatio >= 0.45) {
+        duskFigure.classList.add("night-on");
+        nightStart = performance.now();
+      } else if (on && !en.isIntersecting) {
+        // fully off-screen: snap back to day so it replays on return
+        duskFigure.classList.add("night-reset");
+        duskFigure.classList.remove("night-on");
+        void duskFigure.offsetWidth; // flush so the snap isn't animated
+        duskFigure.classList.remove("night-reset");
+        nightStart = 0;
+      }
+    }, { threshold: [0, 0.45] });
+    io.observe(duskFigure);
+  } else if (duskFigure) {
+    duskFigure.classList.add("night-on");
+  }
+
+  /* ---------- main loop ---------- */
 
   let started = false;
 
@@ -338,19 +407,6 @@
 
     // dark chapter
     document.body.classList.toggle("is-dark", scrollY + ih * 0.6 > twilightTop);
-
-    // smooth horizontal slider (replaces the stepped scroll-driven CSS,
-    // which quantizes to wheel/touch scroll events and reads as jumpy)
-    if (hsDriven) {
-      const hr = hsSection.getBoundingClientRect();
-      const denom = Math.max(1, hsSection.offsetHeight - ih);
-      const prog = clamp(-hr.top / denom, 0, 1);
-      const shift = Math.max(0, hsTrack.offsetWidth - innerWidth);
-      const target = -prog * shift;
-      hsX = lerp(hsX, target, 0.14);
-      if (Math.abs(hsX - target) < 0.1) hsX = target;
-      hsTrack.style.transform = `translate3d(${hsX}px, 0, 0)`;
-    }
 
     // cursor: dot and ring travel together, no visible lag
     if (finePointer) {
@@ -384,16 +440,15 @@
         if (p.reveal <= 0) continue;
         const eased = cubicOut(p.reveal);
 
-        // photos sit fully static in their frames — no scroll physics.
-        // Only the twilight scrub animates: day -> night while pinned.
-        let zoom = 1.045;
+        // photos sit fully static in their frames — no scroll physics,
+        // no overscan: GL frames exactly match the DOM cover-crop.
+        // The twilight crossfade plays on a timer once triggered
+        // (0.4s hold on the day view, then 2.6s day -> night).
+        const zoom = 1.0;
         let mix = 0;
-        if (p.isScrub && p.tex2) {
-          const wr = p.el.closest(".twilight-scrub").getBoundingClientRect();
-          const travel = Math.max(1, wr.height - ih);
-          mix = clamp(-wr.top / travel, 0, 1);
+        if (p.isScrub && p.tex2 && nightStart) {
+          mix = clamp((now - nightStart - 400) / 2600, 0, 1);
           mix = mix * mix * (3 - 2 * mix); // smoothstep
-          zoom = 1.1 - 0.055 * mix;
         }
 
         gl.uniform2f(uni.uCenter, (r.left + r.width / 2) * dpr, (r.top + r.height / 2) * dpr);

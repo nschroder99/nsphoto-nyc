@@ -111,7 +111,9 @@ html.gl-active [data-gl] img {
    directly — fully static, with a scroll-linked fade-in only.
    The twilight night-img keeps its own crossfade rule (more specific). */
 @supports (animation-timeline: view()) {
-  html:not(.gl-active) [data-gl] img {
+  /* .night-img is excluded: its opacity belongs to the crossfade
+     transition, and an animation here would override it */
+  html:not(.gl-active) [data-gl] img:not(.night-img) {
     animation: img-fade linear both;
     animation-timeline: view();
     animation-range: entry 0% entry 70%;
@@ -524,18 +526,78 @@ html.is-loaded .hero__foot { opacity: 1; }
 
 /* flows straight on from the work rows above — no header, modest gap */
 .hscroll {
+  position: relative;
   margin-top: clamp(60px, 10vh, 140px);
 }
 
-/* fallback: manual horizontal strip with snap */
+/* floating scroll cue: a frosted chevron over the right of the strip,
+   vertically centred on the photos, that fades once the strip moves */
+.hscroll__cue-wrap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: clamp(14px, 3.5vw, 44px);
+  display: flex;
+  align-items: center;
+  z-index: 4;
+  pointer-events: none;
+  transition: opacity 0.6s var(--ease);
+}
+
+.hscroll.is-scrolled .hscroll__cue-wrap {
+  opacity: 0;
+}
+
+.hscroll__cue {
+  pointer-events: auto;
+  width: clamp(50px, 8vw, 62px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid oklch(100% 0 0 / 0.6);
+  background: oklch(20% 0 0 / 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  animation: cue-nudge 2.2s var(--ease) infinite;
+  transition: background 0.3s var(--ease), scale 0.3s var(--ease);
+}
+
+.hscroll__cue:hover {
+  background: oklch(20% 0 0 / 0.62);
+  scale: 1.06;
+}
+
+.hscroll__cue:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.hscroll__cue svg {
+  width: 42%;
+  height: 42%;
+}
+
+@keyframes cue-nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(7px); }
+}
+
+/* native swipe/drag strip — never captures vertical scrolling */
 .hscroll__track {
   display: flex;
   gap: 3vw;
   padding-inline: var(--pad);
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
   scrollbar-width: none;
+  cursor: grab;
 }
+
+.hscroll__track:active { cursor: grabbing; }
 
 .hscroll__track::-webkit-scrollbar { display: none; }
 
@@ -544,6 +606,11 @@ html.is-loaded .hero__foot { opacity: 1; }
   width: clamp(300px, 62vw, 1050px);
   aspect-ratio: 3 / 2;
   scroll-snap-align: center;
+  user-select: none;
+}
+
+.panel img {
+  -webkit-user-drag: none;
 }
 
 .panel--end {
@@ -570,38 +637,6 @@ html.is-loaded .hero__foot { opacity: 1; }
   text-decoration: none;
   border-bottom: 1px solid currentColor;
   padding-bottom: 3px;
-}
-
-/* upgrade: scroll-driven pinned horizontal travel */
-@supports (animation-timeline: view()) {
-  .hscroll {
-    height: 380svh;
-    view-timeline: --hs block;
-  }
-
-  .hscroll__pin {
-    position: sticky;
-    top: 0;
-    height: 100svh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: clip;
-  }
-
-  .hscroll__track {
-    overflow-x: visible;
-    scroll-snap-type: none;
-    width: max-content;
-    animation: h-slide linear both;
-    animation-timeline: --hs;
-    animation-range: contain 0% contain 100%;
-    will-change: transform;
-  }
-
-  @keyframes h-slide {
-    to { transform: translateX(calc(-100% + 100vw)); }
-  }
 }
 
 /* ---------- twilight ---------- */
@@ -632,24 +667,11 @@ html.is-loaded .hero__foot { opacity: 1; }
   color: var(--accent);
 }
 
-/* Day-to-night scroll scrub: a full-viewport pin holds the chapter
-   heading above a middle-band image while the view crossfades from
-   daytime to sunset (GL uMix, or the CSS fallback below). */
-.twilight-scrub {
-  height: 260svh;
-}
-
-.twilight-scrub__pin {
-  position: sticky;
-  top: 0;
-  height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
+/* Day-to-night crossfade: no pin — the transition plays on its own
+   (GL uMix on desktop, the .night-on opacity transition otherwise)
+   once the photo scrolls into view. */
 .frame--dusk {
-  height: 50svh;
+  height: clamp(320px, 56svh, 640px);
   width: 100%;
 }
 
@@ -660,25 +682,21 @@ html.is-loaded .hero__foot { opacity: 1; }
 
 .frame--dusk .night-img {
   z-index: 1;
+  opacity: 0;
+  transition: opacity 2.6s ease-in-out 0.4s;
 }
 
-/* DOM fallback (no WebGL): crossfade driven by the scrub's view timeline */
-@supports (animation-timeline: view()) {
-  html:not(.gl-active) .twilight-scrub {
-    view-timeline: --scrub block;
-  }
-  html:not(.gl-active) .frame--dusk .night-img {
-    animation: night-fade linear both;
-    animation-timeline: --scrub;
-    animation-range: contain 0% contain 100%;
-  }
-  @keyframes night-fade {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
+/* DOM crossfade only when GL isn't rendering the scrub itself —
+   otherwise this img would fade in over the canvas at a second scale */
+html:not(.gl-active) .frame--dusk.night-on .night-img {
+  opacity: 1;
 }
 
-/* sits inside the pin, directly beneath the photo during the transition */
+/* off-screen reset back to day happens as an unanimated snap */
+.frame--dusk.night-reset .night-img {
+  transition: none;
+}
+
 .twilight__copy {
   margin: clamp(20px, 3.5svh, 44px) auto 0;
   max-width: 48ch;
@@ -859,17 +877,16 @@ html.is-loaded .hero__foot { opacity: 1; }
   .row--pair { grid-template-columns: 1fr; gap: 34px; }
 
   .frame--cinema { aspect-ratio: 4 / 3; }
-  .twilight-scrub { height: 220svh; }
+  .frame--dusk { height: clamp(240px, 42svh, 420px); }
 
-  /* slider panels fill half the screen height at the photo's native
-     3:2 — wider than the viewport, so the full frame slides past */
+  /* swipe-strip cards: full photo visible, next one peeking at the edge */
   .panel {
-    height: 50svh;
-    width: auto;
+    width: 84vw;
     aspect-ratio: 3 / 2;
+    height: auto;
   }
 
-  .panel--end { height: auto; }
+  .panel--end { width: 70vw; }
 
   .svc {
     grid-template-columns: 40px 1fr;
@@ -888,6 +905,7 @@ html.is-loaded .hero__foot { opacity: 1; }
   .marquee__inner { animation: none; }
   .hero__scrollcue i::after { animation: none; }
   .preloader__logo { animation: none; }
+  .hscroll__cue { animation: none; }
 
   .reveal, .fill-text {
     animation: none;
@@ -898,14 +916,9 @@ html.is-loaded .hero__foot { opacity: 1; }
       color: var(--ink);
       background: none;
     }
-    .hscroll { height: auto; view-timeline: none; }
-    .hscroll__pin { position: static; height: auto; overflow: visible; }
-    .hscroll__track {
-      overflow-x: auto;
-      width: auto;
-      animation: none;
-    }
   }
+
+  .frame--dusk .night-img { transition: none; }
 
   .hero__title .line > span,
   .hdr,
