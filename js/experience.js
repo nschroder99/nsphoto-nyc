@@ -314,26 +314,77 @@
     measure();
   });
 
-  /* ---------- slider: desktop drag-to-scroll ---------- */
+  /* ---------- slider: smooth wheel + inertial drag (mouse-friendly) ---------- */
 
   const hsTrack = document.querySelector(".hscroll__track");
   if (hsTrack && finePointer) {
-    let dragging = false, dragStartX = 0, dragStartScroll = 0, dragMoved = 0;
+    const maxScroll = () => Math.max(0, hsTrack.scrollWidth - hsTrack.clientWidth);
+
+    // one rAF loop eases the track toward a target position
+    let targetX = hsTrack.scrollLeft;
+    let raf = 0;
+    const tick = () => {
+      const cur = hsTrack.scrollLeft;
+      const diff = targetX - cur;
+      if (Math.abs(diff) < 0.4) {
+        hsTrack.scrollLeft = targetX;
+        raf = 0;
+        return;
+      }
+      hsTrack.scrollLeft = cur + diff * 0.16;
+      raf = requestAnimationFrame(tick);
+    };
+    const glideTo = (x) => {
+      targetX = clamp(x, 0, maxScroll());
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    // vertical mouse wheel over the strip → horizontal glide;
+    // passes through to the page once the strip hits either end
+    hsTrack.addEventListener("wheel", (e) => {
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (!delta) return;
+      // resync when idle so external changes (cue click) can't desync the bounds
+      if (!raf) targetX = hsTrack.scrollLeft;
+      const max = maxScroll();
+      const EDGE = 2; // sub-pixel tolerance so the ends never trap the wheel
+      const atStart = targetX <= EDGE && delta < 0;
+      const atEnd = targetX >= max - EDGE && delta > 0;
+      if (atStart || atEnd) return; // let the page scroll normally
+      e.preventDefault();
+      glideTo(targetX + delta);
+    }, { passive: false });
+
+    // drag with momentum: releasing a flick keeps gliding, then eases to rest
+    let dragging = false, lastX = 0, lastT = 0, vel = 0, dragMoved = 0;
     hsTrack.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || e.pointerType !== "mouse") return;
       dragging = true;
       dragMoved = 0;
-      dragStartX = e.clientX;
-      dragStartScroll = hsTrack.scrollLeft;
+      vel = 0;
+      lastX = e.clientX;
+      lastT = e.timeStamp;
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      targetX = hsTrack.scrollLeft;
       hsTrack.setPointerCapture(e.pointerId);
     });
     hsTrack.addEventListener("pointermove", (e) => {
       if (!dragging) return;
-      const dx = e.clientX - dragStartX;
-      dragMoved = Math.max(dragMoved, Math.abs(dx));
-      hsTrack.scrollLeft = dragStartScroll - dx;
+      const dx = e.clientX - lastX;
+      const dt = Math.max(1, e.timeStamp - lastT);
+      dragMoved += Math.abs(dx);
+      vel = dx / dt; // px per ms
+      lastX = e.clientX;
+      lastT = e.timeStamp;
+      targetX = clamp(hsTrack.scrollLeft - dx, 0, maxScroll());
+      hsTrack.scrollLeft = targetX;
     });
-    const endDrag = () => (dragging = false);
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      // fling: convert release velocity into a glide distance
+      glideTo(targetX - vel * 320);
+    };
     hsTrack.addEventListener("pointerup", endDrag);
     hsTrack.addEventListener("pointercancel", endDrag);
     // a real drag should not also fire a click (e.g. on "Book a shoot")
@@ -447,7 +498,7 @@
         const zoom = 1.0;
         let mix = 0;
         if (p.isScrub && p.tex2 && nightStart) {
-          mix = clamp((now - nightStart - 400) / 2600, 0, 1);
+          mix = clamp((now - nightStart - 200) / 3000, 0, 1);
           mix = mix * mix * (3 - 2 * mix); // smoothstep
         }
 
